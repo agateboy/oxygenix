@@ -4,7 +4,6 @@ pandas-datareader==0.10.0
 pandas-gbq==0.29.1
 pandas-stubs==2.2.2.240909
 joblib==1.5.1
-Flask==3.1.2
 firebase==4.0.1
 firebase_admin==7.1.0
 Flask==3.1.0
