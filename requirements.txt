@@ -1,5 +1,4 @@
 altair==5.5.0
-aspose-words==24.11.0 
 asttokens==3.0.0      
 attrs==24.2.0
 beautifulsoup4==4.12.3
