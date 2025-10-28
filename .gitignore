@@ -23,4 +23,4 @@ google-credentials.json
 # VSCode and Python caches (optional)
 .vscode/
 __pycache__/
-*.pyc
+*.pyc"serviceAccountKey.json" 
