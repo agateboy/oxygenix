@@ -1,0 +1,26 @@
+# Authentication and secret files
+serviceAccountKey.json
+firebase-adminsdk*.json
+credentials.json
+google-credentials.json
+*.credentials.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# Cloud SDK / credentials folders
+.aws/
+.gcloud/
+# VSCode and Python caches (optional)
+.vscode/
+__pycache__/
+*.pyc

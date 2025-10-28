@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Log - OXYGENIX</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+
+        /* 🔹 CSS UNTUK TOMBOL KEMBALI */
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px; /* Jarak ke elemen di bawahnya */
+            padding: 10px 15px;
+            background-color: #6c757d; /* Warna abu-abu netral */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        /* 🔹 AKHIR CSS TOMBOL KEMBALI */
+
+        #message-box {
+            text-align: center;
+            font-size: 1.2em;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .loading {
+            background-color: #e9ecef;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete-btn:disabled {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dataset Log OXYGENIX</h1>
+        
+        <a href="/" class="back-btn">&laquo; Kembali ke Dashboard</a>
+        
+        <div id="message-box" class="loading">
+            Memuat data log dari database...
+        </div>
+
+        <div class="table-wrapper">
+            <table id="log-table">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Nama Pasien</th>
+                        <th>Hasil Prediksi</th>
+                        <th>Usia</th>
+                        <th>BMI</th>
+                        <th>Heart Rate</th>
+                        <th>SpO₂</th>
+                        <th>Aktivitas</th>
+                        <th>Merokok</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="log-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ... KODE JAVASCRIPT ANDA (TIDAK BERUBAH) ...
+        document.addEventListener('DOMContentLoaded', fetchLogs);
+
+        const tableBody = document.getElementById('log-table-body');
+        const messageBox = document.getElementById('message-box');
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/get_logs');
+                const data = await response.json();
+
+                if (data.status === 'error') {
+                    throw new Error(data.message);
+                }
+                
+                populateTable(data.logs);
+                messageBox.style.display = 'none'; 
+
+            } catch (error) {
+                messageBox.textContent = `❌ Gagal memuat data: ${error.message}`;
+                messageBox.classList.remove('loading');
+                messageBox.classList.add('error');
+            }
+        }
+
+        function populateTable(logs) {
+            tableBody.innerHTML = ''; 
+            
+            if (logs.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Tidak ada data log yang tersimpan.</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-doc-id', log.doc_id); 
+                
+                row.innerHTML = `
+                    <td>${log.timestamp_readable || '-'}</td>
+                    <td>${log.nama || '-'}</td>
+                    <td>${log.prediction_result || '-'}</td>
+                    <td>${log.age || '-'}</td>
+                    <td>${log.bmi || '-'}</td>
+                    <td>${log.heart_rate || '-'}</td>
+                    <td>${log.spo2 || '-'}</td>
+                    <td>${log.activity || '-'}</td>
+                    <td>${log.smoking_status || '-'}</td>
+                    <td>
+                        <button class="delete-btn" onclick="confirmDelete('${log.doc_id}')">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function confirmDelete(docId) {
+            if (confirm(`Anda yakin ingin menghapus log ini secara permanen?\nID: ${docId}`)) {
+                deleteLog(docId);
+            }
+        }
+
+        async function deleteLog(docId) {
+            const row = document.querySelector(`tr[data-doc-id="${docId}"]`);
+            const deleteButton = row.querySelector('.delete-btn');
+            
+            deleteButton.disabled = true;
+            deleteButton.textContent = 'Menghapus...';
+
+            try {
+                const response = await fetch('/delete_log', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ doc_id: docId })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    row.remove();
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                alert(`Gagal menghapus log: ${error.message}`);
+                deleteButton.disabled = false;
+                deleteButton.textContent = 'Hapus';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OXYGENIX</title>
+    <style>
+        /* 1. CSS UNTUK FORM (TIDAK BERUBAH) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 100%;
+        }
+
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .bmi-group { display: flex; gap: 10px; }
+        .bmi-group input { width: calc(50% - 5px); }
+        .button-group { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 20px; }
+        .button-group button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 10px; text-decoration: none; text-align: center; box-sizing: border-box; }
+        #get-sensor-button { background-color: #ffc107; color: #343a40; flex-grow: 1; margin-right: 10px; }
+        #predict-button { background-color: #007bff; color: white; flex-grow: 1; margin-right: 10px; }
+        #save-button { background-color: #28a745; color: white; flex-grow: 1; }
+
+        /* 🔹 UBAH: Ini sekarang men-style tombol, bukan link */
+        #show-dataset-button {
+            display: block; padding: 10px 15px; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold; text-decoration: none; text-align: center;
+            box-sizing: border-box; background-color: #17a2b8; color: white;
+            width: 100%; margin-top: 15px;
+        }
+
+        #result-box { margin-top: 20px; padding: 15px; border-radius: 5px; text-align: center; font-size: 1.1em; font-weight: bold; background-color: #e9ecef; color: #333; }
+        .result-success { background-color: #d4edda; color: #155724; }
+        .result-error { background-color: #f8d7da; color: #721c24; }
+
+        /* 2. 🔹 TAMBAH: CSS BARU UNTUK TAMPILAN DATASET (DARI dataset.html) */
+        #dataset-view {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        #dataset-view h1 { text-align: center; }
+        .back-btn {
+            display: inline-block; margin-bottom: 20px; padding: 10px 15px;
+            background-color: #6c757d; color: white; text-decoration: none;
+            border-radius: 5px; font-weight: bold; border: none; cursor: pointer;
+        }
+        .back-btn:hover { background-color: #5a6268; }
+        #dataset-message-box { text-align: center; font-size: 1.2em; padding: 20px; border-radius: 5px; }
+        .loading { background-color: #e9ecef; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .table-wrapper { overflow-x: auto; }
+        #log-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #log-table th, #log-table td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
+        #log-table th { background-color: #007bff; color: white; }
+        #log-table tr:nth-child(even) { background-color: #f2f2f2; }
+        .delete-btn { background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+        .delete-btn:disabled { background-color: #ccc; }
+    </style>
+</head>
+
+<body>
+    
+<div class="container" id="main-form-container">
+    <h2>OXYGENIX</h2>
+    <form id="prediction-form">
+        <div class="form-group">
+            <label for="nama">Nama Pasien</label>
+            <input type="text" id="nama" name="nama" required>
+        </div>
+        <div class="form-group">
+            <label for="age">Usia (Tahun)</label>
+            <input type="number" id="age" name="age" min="1" required>
+        </div>
+        <div class="form-group">
+            <label for="gender">Jenis Kelamin</label>
+            <select id="gender" name="gender" required>
+                <option value="Pria">Pria</option>
+                <option value="Wanita">Wanita</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tinggi_cm">Tinggi Badan (cm)</label>
+            <input type="number" id="tinggi_cm" name="tinggi_cm" min="50" max="300" required>
+        </div>
+        <div class="form-group">
+            <label for="berat_kg">Berat Badan (kg)</label>
+            <input type="number" id="berat_kg" name="berat_kg" step="0.1" min="10" required>
+        </div>
+        <div class="form-group">
+            <label for="heart_rate">Heart Rate (bpm) - Manual / Sensor</label>
+            <input type="number" id="heart_rate" name="heart_rate" min="40" max="180" step="1" required>
+        </div>
+        <div class="form-group">
+            <label for="spo2">SpO₂ (%) - Manual / Sensor</label>
+            <input type="number" id="spo2" name="spo2" min="70" max="100" step="0.1" required>
+        </div>
+        <div class="form-group">
+            <label for="smoking_status">Status Merokok</label>
+            <select id="smoking_status" name="smoking_status" required>
+                <option value="Yes">Perokok Aktif (Current)</option>
+                <option value="Former">Mantan Perokok (Former)</option>
+                <option value="No">Tidak Pernah Merokok (Never)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="activity">Tingkat Aktivitas Fisik</label>
+            <select id="activity" name="activity" required>
+                <option value="Tinggi">Tinggi (High)</option>
+                <option value="Sedang">Sedang (Moderate)</option>
+                <option value="Rendah">Rendah (Low)</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button type="button" id="get-sensor-button">UKUR & DAPATKAN DATA</button>
+            <button type="submit" id="predict-button">PREDIKSI RESIKO</button>
+            <button type="button" id="save-button" disabled>SIMPAN LOG</button>
+        </div>
+    </form>
+
+    <div id="result-box">
+        </div>
+
+    <button type="button" id="show-dataset-button">TAMPILKAN DATASET</button>
+</div>
+
+
+<div id="dataset-view" style="display:none;">
+    <h1>Dataset Log OXYGENIX</h1>
+    
+    <button id="back-to-form-btn" class="back-btn">&laquo; Kembali ke Dashboard</button>
+    
+    <div id="dataset-message-box" class="loading">
+        Memuat data log dari database...
+    </div>
+
+    <div class="table-wrapper">
+        <table id="log-table">
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Nama Pasien</th>
+                    <th>Hasil Prediksi</th>
+                    <th>Usia</th>
+                    <th>BMI</th>
+                    <th>Heart Rate</th>
+                    <th>SpO₂</th>
+                    <th>Aktivitas</th>
+                    <th>Merokok</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="log-table-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+// ======================================================
+// 1. VARIABEL DAN FUNGSI UNTUK FORM UTAMA
+// ======================================================
+let lastPredictionData = {};
+let sensorData = { heart_rate: null, spo2: null };
+
+const form = document.getElementById('prediction-form');
+const predictButton = document.getElementById('predict-button');
+const saveButton = document.getElementById('save-button');
+const resultBox = document.getElementById('result-box');
+const hrDisplay = document.getElementById('heart_rate');
+const spo2Display = document.getElementById('spo2');
+const getSensorButton = document.getElementById('get-sensor-button');
+
+// (Fungsi getSensorData, event listener form submit, event listener saveButton tetap sama)
+
+async function getSensorData() {
+    resultBox.textContent = 'Mengambil data...';
+    resultBox.classList.remove('result-success', 'result-error');
+    getSensorButton.disabled = true;
+    try {
+        const response = await fetch('/get_sensor_data');
+        const result = await response.json();
+        if (result.status === 'error') throw new Error(result.message);
+        sensorData.heart_rate = result.HeartRate;
+        sensorData.spo2 = result.SPO2;
+        hrDisplay.value = sensorData.heart_rate;
+        spo2Display.value = sensorData.spo2;
+        resultBox.textContent = `✅ Data Sensor Diterima: HR=${result.HeartRate}, SpO₂=${result.SPO2}`;
+        resultBox.classList.add('result-success');
+    } catch (error) {
+        resultBox.textContent = '❌ Gagal mengambil data sensor: ' + error.message;
+        resultBox.classList.add('result-error');
+    } finally {
+        getSensorButton.disabled = false;
+    }
+}
+getSensorButton.addEventListener('click', getSensorData);
+
+form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const hrValue = parseFloat(hrDisplay.value);
+    const spo2Value = parseFloat(spo2Display.value);
+    const namaValue = document.getElementById('nama').value;
+    if (isNaN(hrValue) || isNaN(spo2Value)) { alert('Isi nilai Heart Rate dan SpO₂ terlebih dahulu.'); return; }
+    if (!namaValue) { alert('Isi "Nama Pasien" terlebih dahulu.'); document.getElementById('nama').focus(); return; }
+    const berat = parseFloat(document.getElementById('berat_kg').value);
+    const tinggi_cm = parseFloat(document.getElementById('tinggi_cm').value);
+    const tinggi_m = tinggi_cm / 100;
+    const bmi_calculated = (berat / (tinggi_m * tinggi_m)).toFixed(2);
+    const data = {
+        nama: namaValue, age: parseFloat(document.getElementById('age').value), bmi: parseFloat(bmi_calculated),
+        gender: document.getElementById('gender').value, heart_rate: hrValue, spo2: spo2Value,
+        activity: document.getElementById('activity').value, smoking_status: document.getElementById('smoking_status').value
+    };
+    resultBox.textContent = '🔄 Memproses prediksi...';
+    resultBox.classList.remove('result-success', 'result-error');
+    saveButton.disabled = true;
+    try {
+        const response = await fetch('/predict', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        const result = await response.json();
+        if (result.status === 'error') throw new Error(result.message);
+        resultBox.innerHTML = `Resiko COPD untuk <b>${data.nama}</b>:<br><strong>${result.prediction_result}</strong>`;
+        resultBox.classList.add('result-success');
+        lastPredictionData = { ...data, prediction_result: result.prediction_result };
+        saveButton.disabled = false;
+    } catch (error) {
+        resultBox.textContent = '❌ Error: ' + error.message;
+        resultBox.classList.add('result-error');
+    }
+});
+
+saveButton.addEventListener('click', async function() {
+    if (!lastPredictionData.nama) { alert('Tidak ada hasil prediksi yang bisa disimpan.'); return; }
+    saveButton.disabled = true;
+    saveButton.textContent = 'Menyimpan...';
+    try {
+        const response = await fetch('/save_csv', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(lastPredictionData) });
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert(result.message);
+            form.reset();
+            resultBox.textContent = 'Silakan masukkan data pasien baru.';
+            resultBox.classList.remove('result-success', 'result-error');
+            lastPredictionData = {};
+        } else { throw new Error(result.message); }
+    } catch (error) {
+        alert('❌ Gagal menyimpan: ' + error.message);
+    } finally {
+        saveButton.disabled = false; 
+        saveButton.textContent = 'SIMPAN LOG';
+    }
+});
+
+
+// ======================================================
+// 2. 🔹 TAMBAH: LOGIKA BARU UNTUK TAMPILAN DATASET
+// ======================================================
+
+// Variabel/elemen untuk tampilan dataset
+const showDatasetButton = document.getElementById('show-dataset-button');
+const datasetView = document.getElementById('dataset-view');
+const mainFormContainer = document.getElementById('main-form-container');
+const backToFormButton = document.getElementById('back-to-form-btn');
+const logTableBody = document.getElementById('log-table-body');
+const datasetMessageBox = document.getElementById('dataset-message-box');
+
+// Tombol untuk TAMPILKAN DATASET
+showDatasetButton.addEventListener('click', () => {
+    mainFormContainer.style.display = 'none'; // Sembunyikan form
+    datasetView.style.display = 'block';      // Tampilkan tabel
+    datasetMessageBox.style.display = 'block';
+    datasetMessageBox.className = 'loading'; // Tampilkan loading
+    datasetMessageBox.textContent = 'Memuat data log dari database...';
+    fetchLogs(); // Panggil fungsi untuk ambil data
+});
+
+// Tombol untuk KEMBALI KE FORM
+backToFormButton.addEventListener('click', () => {
+    mainFormContainer.style.display = 'block'; // Tampilkan form
+    datasetView.style.display = 'none';       // Sembunyikan tabel
+});
+
+
+// ======================================================
+// 3. 🔹 TAMBAH: FUNGSI DARI dataset.html (DISALIN KE SINI)
+// ======================================================
+
+/**
+ * Mengambil data log dari server /get_logs
+ */
+async function fetchLogs() {
+    try {
+        const response = await fetch('/get_logs');
+        const data = await response.json();
+
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        
+        populateTable(data.logs);
+        datasetMessageBox.style.display = 'none'; // Sembunyikan pesan loading
+
+    } catch (error) {
+        datasetMessageBox.textContent = `❌ Gagal memuat data: ${error.message}`;
+        datasetMessageBox.classList.remove('loading');
+        datasetMessageBox.classList.add('error');
+    }
+}
+
+/**
+ * Mengisi tabel dengan data log
+ */
+function populateTable(logs) {
+    logTableBody.innerHTML = ''; // Kosongkan tabel
+    
+    if (logs.length === 0) {
+        logTableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Tidak ada data log yang tersimpan.</td></tr>';
+        return;
+    }
+
+    logs.forEach(log => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-doc-id', log.doc_id); // Simpan ID di baris
+        
+        row.innerHTML = `
+            <td>${log.timestamp_readable || '-'}</td>
+            <td>${log.nama || '-'}</td>
+            <td>${log.prediction_result || '-'}</td>
+            <td>${log.age || '-'}</td>
+            <td>${log.bmi || '-'}</td>
+            <td>${log.heart_rate || '-'}</td>
+            <td>${log.spo2 || '-'}</td>
+            <td>${log.activity || '-'}</td>
+            <td>${log.smoking_status || '-'}</td>
+            <td>
+                <button class="delete-btn" onclick="confirmDelete('${log.doc_id}')">Hapus</button>
+            </td>
+        `;
+        logTableBody.appendChild(row);
+    });
+}
+
+/**
+ * Konfirmasi sebelum menghapus
+ * PENTING: Fungsi ini harus bisa diakses secara global karena dipanggil via onclick()
+ */
+function confirmDelete(docId) {
+    if (confirm(`Anda yakin ingin menghapus log ini secara permanen?\nID: ${docId}`)) {
+        deleteLog(docId);
+    }
+}
+
+/**
+ * Mengirim request hapus data ke server
+ * PENTING: Fungsi ini harus bisa diakses secara global
+ */
+async function deleteLog(docId) {
+    const row = document.querySelector(`tr[data-doc-id="${docId}"]`);
+    const deleteButton = row.querySelector('.delete-btn');
+    
+    deleteButton.disabled = true;
+    deleteButton.textContent = 'Menghapus...';
+
+    try {
+        const response = await fetch('/delete_log', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ doc_id: docId })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            // Hapus baris dari tabel jika berhasil
+            row.remove();
+        } else {
+            throw new Error(result.message);
+        }
+
+    } catch (error) {
+        alert(`Gagal menghapus log: ${error.message}`);
+        deleteButton.disabled = false;
+        deleteButton.textContent = 'Hapus';
+    }
+}
+
+</script>
+</body>
+</html>

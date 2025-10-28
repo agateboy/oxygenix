@@ -1,0 +1,5 @@
+Nama,age,bmi,gender,heart_rate,spo2,activity,smoking_status,prediction_result
+ss,56,20,Pria,88,90,Tinggi,Perokok Aktif,93.91% (Resiko Tinggi)
+ss,65,36.36,Pria,89,90,Tinggi,Perokok Aktif,86.54% (Resiko Tinggi)
+ss,65,36.36,Pria,89,90,Tinggi,Perokok Aktif,86.54% (Resiko Tinggi)
+P,23,20.76,Pria,93,99,Tinggi,Perokok Aktif,87.70% (Resiko Tinggi)
