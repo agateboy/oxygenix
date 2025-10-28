@@ -521,7 +521,7 @@
             <td>${log.smoking_status || '-'}</td>
             <td><button class="delete-btn" onclick="confirmDelete('${log.doc_id}')">Hapus</button></td>
         `;
-                tableBody.appendChild(row);
+                logTableBody.appendChild(row);
             });
         }
         function confirmDelete(docId) {

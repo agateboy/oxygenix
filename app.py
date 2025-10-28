@@ -138,9 +138,9 @@ def home():
 # =============================================================================
 # 🔹 HALAMAN BARU (DATASET.HTML)
 # =============================================================================
-@app.route('/dataset')
-def dataset_page():
-    return render_template('dataset.html')
+# @app.route('/dataset')
+# def dataset_page():
+#     return render_template('dataset.html')
 
 # =============================================================================
 # GET SENSOR DATA (RTDB)
