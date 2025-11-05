@@ -234,7 +234,12 @@ def predict():
         sample_scaled = scaler.transform(sample)
         prob_copd = loaded_model.predict_proba(sample_scaled)[0][1]
         resiko_copd_persen = prob_copd * 100
-        resiko_label = "Tinggi" if prob_copd >= 0.5 else "Rendah"
+        if prob_copd < 0.33:
+            resiko_label = "Rendah"
+        elif prob_copd < 0.66:
+            resiko_label = "Sedang"
+        else:
+            resiko_label = "Tinggi"
         result = f"{resiko_copd_persen:.2f}% (Resiko {resiko_label})"
 
         return jsonify({'status': 'success', 'prediction_result': result})

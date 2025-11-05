@@ -425,7 +425,7 @@
                 const result = await response.json();
                 if (result.status === 'error') throw new Error(result.message);
 
-                resultBox.innerHTML = `Resiko COPD untuk <b>${data.nama}</b>:<br><strong>${result.prediction_result}</strong>`;
+                resultBox.innerHTML = `Resiko PPOk untuk <b>${data.nama}</b>:<br><strong>${result.prediction_result}</strong>`;
                 resultBox.classList.add('result-success');
 
                 lastPredictionData = { ...data, prediction_result: result.prediction_result };
